@@ -1,0 +1,66 @@
+#include<iostream>
+#include<unistd.h>
+#include<sched.h>
+
+using namespace std;
+#define CORE 0
+
+
+bool set_cpu_core(unsigned int cpu_core_no){
+  pid_t pid;
+  cpu_set_t cpu_set;
+  int result;
+
+  pid = getpid();
+  CPU_ZERO(&cpu_set);
+  CPU_SET(cpu_core_no, &cpu_set);
+
+  result = sched_setaffinity(pid, sizeof(cpu_set_t), &cpu_set);
+  if (result != 0) {
+    cout << "coudn't set cpu core\n";
+	return false;
+  }
+	return true;
+  //cout << "this cpu is " << cpu_core_no << endl;	
+	
+}
+
+
+void *func1(void *p){
+	int cpu_no = 0;
+	if(set_cpu_core(cpu_no)){
+	cout << "thread 1, core : " << cpu_no << endl;
+	}else{
+		cout << "thread 1 is fail!\n";
+	}
+}
+
+
+
+void *func2(void *p){
+	int cpu_no = 1;
+	if(set_cpu_core(cpu_no)){
+	cout << "thread 2, core : " << cpu_no << endl;
+	}else{
+		
+		cout << "thread 2 is fail!\n";
+	}
+}
+
+
+int main(){
+
+	pthread_t thread_1, thread2;
+	int b = 42;
+	
+	pthread_create(&thread_1, NULL, &func1, &b);
+	pthread_create(&thread2, NULL, &func2, &b);
+	
+	pthread_join(thread_1,NULL);
+	pthread_join(thread2,NULL);
+	
+	
+	
+	return 0;
+}
+
